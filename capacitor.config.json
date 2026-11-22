@@ -1,0 +1,8 @@
+{
+  "appId": "com.helio.meutreino",
+  "appName": "FITY",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  }
+}

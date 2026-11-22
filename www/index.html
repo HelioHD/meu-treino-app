@@ -1,0 +1,374 @@
+<!doctype html>
+<!--
+  FITY - Treino do Helio
+  Autoria: Helio Delfino Lopes de Alcantara
+  Pesquisador e pentester web especializado / Security researcher & web penetration tester
+  Imagens de exercicio: free-exercise-db (yuhonas) / everkinetic - dominio publico (Unlicense)
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>FITY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Layout: app claro e minimalista (estilo LOOP) — tipografia Anton, 1 cor de acento
+     (azul Delfino), linhas finas, sem gradiente e sem glass. Estrutura: header, anel de
+     pontos, trilha de dias, carrossel de cartoes com imagem real animando, semana */
+  :root {
+    --bg: #ffffff;
+    --panel: #f3f3f4;
+    --ink: #0b0b0d;
+    --muted: #70707a;
+    --faint: #a6a6ae;
+    --line: #e7e7ec;
+    --line-2: #0b0b0d;
+    --accent: #0057ff;
+    --accent-soft: #eaf0ff;
+    --radius: 18px;
+    --fw: "Anton", "Arial Narrow", Impact, sans-serif;
+    --fb: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--fb); -webkit-font-smoothing: antialiased; line-height: 1.45; min-height: 100vh; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 520px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left,0px)); padding-right: max(20px, env(safe-area-inset-right,0px)); padding-bottom: 46px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 18px 0 10px; }
+  .wordmark { font-family: var(--fw); font-size: 36px; line-height: .82; letter-spacing: .03em; color: var(--ink); }
+  .wordmark b { color: var(--accent); font-weight: 400; }
+  .tag { font-size: 10.5px; color: var(--muted); letter-spacing: .24em; text-transform: uppercase; margin-top: 5px; font-weight: 600; }
+  .date-chip { font-size: 12px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); padding: 8px 13px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; }
+
+  /* Anel plano */
+  .ring-wrap { display: flex; justify-content: center; padding: 10px 0 2px; }
+  .ring { position: relative; width: 254px; height: 254px; max-width: 72vw; max-height: 72vw; }
+  .ring svg { width: 100%; height: 100%; display: block; }
+  .ring .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+  .ring .big { font-family: var(--fw); font-size: 62px; line-height: .82; letter-spacing: .01em; color: var(--ink); }
+  .ring .big small { font-size: 26px; color: var(--faint); }
+  .ring .cap { font-size: 12px; color: var(--muted); margin-top: 10px; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
+  .ring .focus { font-size: 12.5px; color: var(--accent); margin-top: 4px; font-weight: 700; }
+
+  /* Dias */
+  .days { display: flex; gap: 8px; overflow-x: auto; padding: 12px 2px 6px; margin: 2px 0 14px; scrollbar-width: none; }
+  .days::-webkit-scrollbar { display: none; }
+  .day { flex: 1 0 auto; min-width: 58px; cursor: pointer; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 11px 6px; text-align: center; color: var(--ink); position: relative; transition: all .14s ease; font-family: var(--fb); }
+  .day .dl { font-weight: 700; font-size: 14px; }
+  .day .ds { font-size: 10px; color: var(--faint); margin-top: 2px; letter-spacing: .02em; }
+  .day[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .day[aria-pressed="true"] .ds { color: rgba(255,255,255,.85); }
+  .day .tdot { position: absolute; top: 7px; right: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .day[aria-pressed="true"] .tdot { background: #fff; }
+  .day .ok { position: absolute; top: 6px; left: 7px; width: 13px; height: 13px; color: var(--accent); display: none; }
+  .day.complete .ok { display: block; }
+  .day[aria-pressed="true"].complete .ok { color: #fff; }
+
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin: 8px 2px 12px; }
+  .sec-head h2 { font-size: 12.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  .sec-head .meta { font-size: 12.5px; color: var(--faint); font-weight: 600; }
+
+  /* Carrossel */
+  .cards { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 6px; margin: 0 -2px; scrollbar-width: none; }
+  .cards::-webkit-scrollbar { display: none; }
+  .card { scroll-snap-align: center; flex: 0 0 86%; max-width: 420px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+  .card.done { border-color: var(--accent); }
+
+  .c-head { display: flex; align-items: center; gap: 11px; padding: 15px 15px 12px; }
+  .c-ic { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink); flex-shrink: 0; }
+  .c-ic svg { width: 17px; height: 17px; }
+  .c-name { font-weight: 700; font-size: 16px; color: var(--ink); line-height: 1.15; flex: 1; min-width: 0; letter-spacing: -.01em; }
+  .card.done .c-name { color: var(--muted); }
+  .c-chk { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; cursor: pointer; border: 2px solid var(--line); background: var(--bg); display: grid; place-items: center; color: transparent; transition: all .14s ease; padding: 0; }
+  .c-chk svg { width: 17px; height: 17px; }
+  .c-chk:hover { border-color: var(--accent); }
+  .card.done .c-chk { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .c-mode { display: flex; gap: 4px; margin: 0 15px 10px; padding: 3px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); }
+  .c-mode button { flex: 1; border: none; background: transparent; color: var(--muted); font-family: var(--fb); font-weight: 700; font-size: 12.5px; padding: 7px 0; border-radius: 8px; cursor: pointer; letter-spacing: .02em; }
+  .c-mode button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .c-media { position: relative; margin: 0 15px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); aspect-ratio: 4/3; overflow: hidden; }
+  .exf { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .4s ease; background: var(--panel); }
+  .exf.f1 { opacity: 0; }
+  .c-media.flip .f0 { opacity: 0; }
+  .c-media.flip .f1 { opacity: 1; }
+  .c-sets { position: absolute; top: 9px; left: 9px; z-index: 3; font-size: 11px; font-weight: 700; color: var(--ink); background: var(--bg); border: 1px solid var(--line); padding: 5px 9px; border-radius: 8px; letter-spacing: .01em; }
+  .c-how { position: absolute; top: 8px; right: 8px; z-index: 3; cursor: pointer; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); color: var(--ink); display: grid; place-items: center; }
+  .c-how svg { width: 16px; height: 16px; }
+
+  .c-bottom { padding: 13px 15px 15px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+  .c-kglbl { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .c-kg { font-family: var(--fw); font-size: 42px; color: var(--accent); line-height: .9; letter-spacing: .01em; margin-top: 3px; }
+  .c-kg span { font-size: 15px; color: var(--faint); font-family: var(--fb); font-weight: 700; }
+  .stepper { display: flex; gap: 7px; }
+  .stepper button { width: 42px; height: 40px; border-radius: 11px; border: 1px solid var(--line); cursor: pointer; background: var(--bg); color: var(--ink); font-size: 22px; display: grid; place-items: center; transition: all .12s ease; }
+  .stepper button:active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .cues { position: absolute; inset: 0; z-index: 6; background: var(--bg); padding: 18px; display: flex; flex-direction: column; }
+  .cues h4 { font-size: 12.5px; margin: 0 0 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  .cues ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 9px; font-size: 13.5px; color: var(--ink); overflow-y: auto; }
+  .cues .close { margin-top: auto; align-self: flex-start; background: var(--accent); color: #fff; border: none; padding: 9px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; font-family: var(--fb); font-size: 13px; }
+
+  .dots { display: flex; justify-content: center; gap: 6px; margin: 12px 0 2px; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line); transition: all .2s ease; }
+  .dots i.on { width: 20px; border-radius: 3px; background: var(--accent); }
+
+  /* Semana */
+  .week { margin-top: 28px; }
+  .week-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 16px 14px; }
+  .bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; height: 108px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+  .bar-track { width: 100%; max-width: 24px; flex: 1; display: flex; align-items: flex-end; background: var(--panel); border-radius: 7px; overflow: hidden; }
+  .bar-fill { width: 100%; border-radius: 7px; background: #cfe0ff; min-height: 4px; transition: height .5s cubic-bezier(.4,0,.2,1); }
+  .bar-col.today .bar-fill { background: var(--accent); }
+  .bar-col .bd { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .02em; }
+  .bar-col.today .bd { color: var(--accent); font-weight: 700; }
+  .week-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .week-foot .wk { font-size: 12.5px; color: var(--muted); }
+  .week-foot .wk b { color: var(--ink); font-family: var(--fw); font-weight: 400; font-size: 15px; }
+  .streak { font-size: 12.5px; font-weight: 700; color: var(--accent); }
+
+  /* HIIT */
+  .hiit-card { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .hiit-body { padding: 16px 18px 20px; text-align: center; }
+  .hiit-clock { font-family: var(--fw); font-size: 58px; color: var(--ink); letter-spacing: .01em; line-height: .9; }
+  .hiit-sub { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+  .hiit-ctrls { display: flex; gap: 9px; justify-content: center; margin-top: 16px; }
+  .hiit-ctrls button { border: 1px solid var(--line); background: var(--bg); color: var(--ink); padding: 11px 18px; border-radius: 11px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--fb); }
+  .hiit-ctrls button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .reset { margin-top: 24px; text-align: center; }
+  .reset button { background: none; border: none; color: var(--faint); font-size: 12.5px; cursor: pointer; font-family: var(--fb); text-decoration: underline; text-underline-offset: 3px; }
+  .foot { text-align: center; font-size: 11px; color: var(--faint); margin-top: 18px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="wordmark">FIT<b>Y</b></div>
+      <div class="tag">Treino do Hélio</div>
+    </div>
+    <div class="date-chip" id="dateChip">—</div>
+  </header>
+
+  <section class="ring-wrap">
+    <div class="ring">
+      <svg viewBox="0 0 260 260" id="ringSvg" aria-hidden="true"></svg>
+      <div class="center">
+        <div class="big tnum"><span id="ringDone">0</span><small id="ringTotal">/0</small></div>
+        <div class="cap" id="ringCap">exercícios feitos</div>
+        <div class="focus" id="ringFocus">—</div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="days" id="days" aria-label="Dias"></nav>
+
+  <div class="sec-head"><h2 id="dayTitle">Exercícios</h2><span class="meta" id="dayMeta"></span></div>
+  <div class="cards" id="cards"></div>
+  <div class="dots" id="dots"></div>
+
+  <section class="week">
+    <div class="sec-head"><h2>Sua semana</h2><span class="streak" id="streak"></span></div>
+    <div class="week-card">
+      <div class="bars" id="bars"></div>
+      <div class="week-foot"><span class="wk" id="weekCount">—</span></div>
+    </div>
+  </section>
+
+  <div class="reset"><button id="resetBtn">Desmarcar tudo de hoje</button></div>
+  <p class="foot">Tudo salvo no seu celular, funciona offline.<br>FITY · feito para Hélio Delfino Lopes de Alcântara.<br>Imagens: free-exercise-db (domínio público).</p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var IMG = {
+    "seg-0":"Barbell_Full_Squat","seg-1":"Barbell_Hip_Thrust","seg-2":"Barbell_Lunge","seg-3":"Glute_Ham_Raise","seg-4":"Seated_Calf_Raise",
+    "ter-0":"Barbell_Bench_Press_-_Medium_Grip","ter-1":"Chin-Up","ter-2":"Barbell_Incline_Bench_Press_-_Medium_Grip","ter-3":"Front_Dumbbell_Raise","ter-4":"Barbell_Curl","ter-5":"EZ-Bar_Skullcrusher",
+    "qua-0":"Mountain_Climbers",
+    "qui-0":"Stiff-Legged_Barbell_Deadlift","qui-1":"Leg_Press","qui-2":"Dumbbell_Lunges","qui-3":"Lying_Leg_Curls","qui-4":"Standing_Barbell_Calf_Raise",
+    "sex-0":"Wide-Grip_Lat_Pulldown","sex-1":"Dumbbell_Bench_Press","sex-2":"One-Arm_Dumbbell_Row","sex-3":"Side_Lateral_Raise","sex-4":"Preacher_Curl","sex-5":"Dips_-_Triceps_Version"
+  };
+  /* Versão máquina de cada exercício (quarta é HIIT, não tem) */
+  var MACH = {
+    "seg-0":{ n:"Agachamento no Smith", img:"Smith_Machine_Squat", cues:["Barra do Smith no trapézio, pés um pouco à frente do corpo.","Destrave a barra girando o punho.","Desça até as coxas paralelas ao chão.","Suba empurrando com os calcanhares e trave a barra no fim."] },
+    "seg-1":{ n:"Glúteo na polia (coice)", img:"One-Legged_Cable_Kickback", cues:["Caneleira presa na polia baixa, segure na estrutura.","Leve a perna para trás e um pouco para cima, contraindo o glúteo.","Sem arquear a lombar.","Se a academia tiver máquina de hip thrust ou glúteo, prefira ela."] },
+    "seg-2":{ n:"Afundo no Smith", img:"Smith_Single-Leg_Split_Squat", cues:["Barra do Smith no trapézio, um pé à frente e outro atrás.","Desça o joelho de trás em direção ao chão.","Tronco ereto, a barra guia o movimento.","Faça todas as reps de uma perna e troque."] },
+    "seg-3":{ n:"Cadeira flexora", img:"Seated_Leg_Curl", cues:["Ajuste o encosto para o joelho ficar no eixo da máquina.","Trave as coxas com o apoio de cima.","Leve os calcanhares para baixo e para trás.","Volte devagar, sem deixar a placa bater."] },
+    "seg-4":{ n:"Panturrilha no leg press", img:"Calf_Press_On_The_Leg_Press_Machine", cues:["Só a ponta dos pés na plataforma, joelhos estendidos (sem travar).","Empurre com a ponta dos pés o máximo.","Pausa de 1 s no topo.","Desça alongando a panturrilha. Não destrave a trava de segurança."] },
+    "ter-0":{ n:"Supino reto máquina", img:"Machine_Bench_Press", cues:["Ajuste o banco para as pegadas ficarem na linha do meio do peito.","Escápulas encostadas e retraídas.","Empurre sem travar os cotovelos.","Volte controlado até sentir o alongamento do peito.","Alternativa: supino reto no Smith."] },
+    "ter-1":{ n:"Puxada supinada no pulley", img:"Underhand_Cable_Pulldowns", cues:["Pegada supinada (palmas para você) na largura dos ombros.","Tronco levemente inclinado para trás.","Puxe até a parte alta do peito, cotovelos rente ao corpo.","Suba controlando. Alternativa: barra fixa no graviton."] },
+    "ter-2":{ n:"Supino inclinado máquina", img:"Leverage_Incline_Chest_Press", cues:["Pegadas na altura da parte alta do peito.","Escápulas encostadas no banco.","Empurre sem travar os cotovelos.","Volte devagar. Alternativa: inclinado no Smith."] },
+    "ter-3":{ n:"Elevação frontal na polia", img:"Front_Cable_Raise", cues:["Polia baixa com barra ou corda, de costas para a máquina.","Suba até a altura dos ombros.","Cotovelos levemente flexionados.","Sem balançar o tronco."] },
+    "ter-4":{ n:"Rosca na polia", img:"Standing_Biceps_Cable_Curl", cues:["Polia baixa com barra reta.","Cotovelos colados ao tronco.","Suba contraindo o bíceps.","Desça devagar, o cabo mantém a tensão."] },
+    "ter-5":{ n:"Tríceps na polia", img:"Triceps_Pushdown", cues:["Polia alta com barra ou corda.","Cotovelos colados ao corpo, parados.","Estenda até travar o tríceps embaixo.","Volte até ~90° sem deixar o cotovelo subir."] },
+    "qui-0":{ n:"Stiff no Smith", img:"Smith_Machine_Stiff-Legged_Deadlift", cues:["Barra do Smith na altura da coxa, joelhos levemente flexionados.","Empurre o quadril para trás, barra rente às pernas.","Sinta o alongamento do posterior.","Costas neutras o tempo todo."] },
+    "qui-1":{ n:"Hack (máquina)", img:"Hack_Squat", cues:["Costas e ombros encostados no apoio.","Pés na largura dos ombros, no meio da plataforma.","Desça até ~90° no joelho.","Empurre sem travar os joelhos. Se o leg press estiver livre, pode usar ele."] },
+    "qui-2":{ n:"Afundo profundo no Smith", img:"Smith_Single-Leg_Split_Squat", cues:["Passada longa para focar no glúteo.","Tronco levemente à frente.","Desça controlado até o joelho de trás quase tocar o chão.","Empurre pelo calcanhar da frente e troque de perna."] },
+    "qui-3":{ n:"Flexora em pé", img:"Standing_Leg_Curl", cues:["Tornozelo sob o rolo, joelho alinhado ao eixo da máquina.","Leve o calcanhar em direção ao glúteo.","Contraia o posterior no final.","Controle a volta. Alternativa: cadeira flexora."] },
+    "qui-4":{ n:"Panturrilha em pé máquina", img:"Standing_Calf_Raises", cues:["Ombros sob as almofadas, ponta dos pés no degrau.","Joelhos estendidos.","Suba o máximo e pause no topo.","Desça alongando abaixo do degrau."] },
+    "sex-0":{ n:"Puxada articulada", img:"Leverage_High_Row", cues:["Ajuste o banco e trave as coxas no apoio.","Pegada aberta.","Puxe levando os cotovelos para baixo e para trás.","Peito aberto e subida controlada."] },
+    "sex-1":{ n:"Supino máquina articulado", img:"Leverage_Chest_Press", cues:["Pegadas na linha do meio do peito.","Escápulas retraídas no encosto.","Empurre sem bater as pegadas.","Volte controlado."] },
+    "sex-2":{ n:"Remada unilateral na polia", img:"Seated_One-arm_Cable_Pulley_Rows", cues:["Sentado, polia baixa com pegador de uma mão.","Puxe o pegador em direção ao quadril.","Cotovelo rente ao corpo, sem girar o tronco.","Volte alongando as costas."] },
+    "sex-3":{ n:"Elevação lateral na polia", img:"Cable_Seated_Lateral_Raise", cues:["Polia baixa, cabo passando à frente do corpo.","Suba até a linha do ombro.","Cotovelo levemente flexionado.","Desça devagar, sem impulso."] },
+    "sex-4":{ n:"Rosca Scott máquina", img:"Machine_Preacher_Curls", cues:["Axilas encaixadas no topo do apoio.","Suba controlando a contração.","Não estenda totalmente embaixo.","Punhos neutros."] },
+    "sex-5":{ n:"Paralela na máquina", img:"Dip_Machine", cues:["Ajuste o banco para as pegadas ficarem ao lado do quadril.","Tronco ereto para focar no tríceps.","Empurre para baixo até estender os braços.","Volte até ~90° no cotovelo."] }
+  };
+  function imgPath(key, n){ return "assets/ex/" + IMG[key] + "/" + n + ".jpg"; }
+  function isMach(key){ return !!MACH[key] && state.mode[key]==="m"; }
+  function exFor(di, ei){ var key=keyFor(di,ei), base=DAYS[di].ex[ei]; if(!isMach(key)) return { n:base.n, cues:base.cues, img:IMG[key] }; var m=MACH[key]; return { n:m.n, cues:m.cues, img:m.img }; }
+  function wKey(key){ return isMach(key) ? key+"@m" : key; }
+
+  var DAYS = [
+    { id:"seg", label:"Seg", full:"Segunda-feira", focus:"Inferiores · força", type:"strength", ex:[
+      { n:"Agachamento", sets:7, reps:3, rest:"1 min", cues:["Barra no trapézio, pés na largura dos ombros.","Desça até as coxas ficarem paralelas ao chão.","Joelhos alinhados à ponta dos pés.","Suba empurrando o chão com os calcanhares."] },
+      { n:"Hip thrust", sets:6, reps:5, rest:"30 s", cues:["Costas no banco, barra na dobra do quadril.","Queixo neutro, olhar à frente.","Suba contraindo o glúteo até o tronco paralelo ao chão.","Pausa no topo e desça controlado."] },
+      { n:"Avanço", sets:6, reps:5, rest:"30 s", cues:["Passo à frente, tronco ereto.","Desça o joelho de trás em direção ao chão.","Empurre pelo calcanhar da frente.","Joelho da frente alinhado ao pé."] },
+      { n:"Glute Ham Raise", sets:6, reps:5, rest:"30 s", cues:["Tornozelos bem fixos no apoio.","Desça o tronco devagar com o posterior.","Use posterior e glúteo para voltar.","Núcleo firme, sem arquear a lombar."] },
+      { n:"Panturrilha sentada", sets:6, reps:5, rest:"30 s", cues:["Joelhos a 90°, peso sobre os joelhos.","Suba na ponta dos pés o máximo.","Pausa de 1 s no topo.","Desça alongando a panturrilha."] }
+    ]},
+    { id:"ter", label:"Ter", full:"Terça-feira", focus:"Peito, costas e braços", type:"strength", ex:[
+      { n:"Supino reto", sets:7, reps:3, rest:"1 min", cues:["Escápulas retraídas, pés firmes.","Pegada pouco mais larga que os ombros.","Desça a barra até o peito, cotovelos a ~45°.","Empurre em linha controlada."] },
+      { n:"Puxada no queixo", sets:6, reps:5, rest:"30 s", cues:["Pegada supinada na largura dos ombros.","Puxe até a altura do queixo.","Cotovelos descendo rente ao corpo.","Controle a subida."] },
+      { n:"Supino inclinado", sets:6, reps:5, rest:"30 s", cues:["Banco entre 30° e 45°.","Desça até a parte alta do peito.","Cotovelos sob os punhos.","Sem travar no topo."] },
+      { n:"Elevação frontal", sets:6, reps:5, rest:"30 s", cues:["Halteres à frente das coxas.","Suba até a altura dos ombros.","Cotovelos levemente flexionados.","Sem balanço do tronco."] },
+      { n:"Rosca direta", sets:6, reps:5, rest:"30 s", cues:["Cotovelos colados ao tronco.","Suba contraindo o bíceps.","Desça devagar até quase estender.","Sem impulso."] },
+      { n:"Tríceps testa", sets:6, reps:5, rest:"30 s", cues:["Deitado, cotovelos apontando ao teto.","Desça a barra até perto da testa.","Estenda só o antebraço.","Cotovelos parados."] }
+    ]},
+    { id:"qua", label:"Qua", full:"Quarta-feira", focus:"HIIT · 25 min", type:"hiit", minutes:25, ex:[] },
+    { id:"qui", label:"Qui", full:"Quinta-feira", focus:"Posteriores e pernas", type:"strength", ex:[
+      { n:"Stiff", sets:7, reps:3, rest:"1 min", cues:["Joelhos levemente flexionados.","Empurre o quadril para trás, barra rente às pernas.","Sinta o alongamento do posterior.","Costas neutras o tempo todo."] },
+      { n:"Leg Press", sets:6, reps:5, rest:"30 s", cues:["Pés na largura dos ombros.","Desça até ~90° sem tirar o quadril do apoio.","Empurre sem travar os joelhos.","Controle a descida."] },
+      { n:"Avanço profundo", sets:6, reps:5, rest:"30 s", cues:["Passada longa, foco no glúteo.","Desça controlado, tronco à frente.","Empurre pelo calcanhar da frente.","Alterne com equilíbrio."] },
+      { n:"Mesa flexora", sets:6, reps:5, rest:"30 s", cues:["Tornozelos sob o rolo.","Flexione levando o calcanhar ao glúteo.","Contraia o posterior no final.","Controle a volta."] },
+      { n:"Panturrilha em pé", sets:6, reps:5, rest:"30 s", cues:["Joelhos estendidos.","Suba na ponta dos pés o máximo.","Pausa no topo.","Desça alongando."] }
+    ]},
+    { id:"sex", label:"Sex", full:"Sexta-feira", focus:"Costas, ombro e braços", type:"strength", ex:[
+      { n:"Puxada aberta", sets:7, reps:3, rest:"1 min", cues:["Pegada aberta pronada.","Puxe até a parte alta do peito.","Peito aberto, puxe com as costas.","Controle a subida."] },
+      { n:"Supino halter reto", sets:6, reps:5, rest:"30 s", cues:["Halteres na linha do peito.","Desça abrindo os cotovelos.","Junte no topo sem bater.","Escápulas retraídas."] },
+      { n:"Remada unilateral", sets:6, reps:5, rest:"30 s", cues:["Apoio de uma mão e joelho no banco.","Puxe o halter ao quadril.","Cotovelo rente ao corpo.","Não gire o tronco."] },
+      { n:"Elevação lateral", sets:6, reps:5, rest:"30 s", cues:["Halteres ao lado do corpo.","Suba até a linha dos ombros.","Cotovelos levemente flexionados.","Sem impulso."] },
+      { n:"Bíceps no banco Scott", sets:6, reps:5, rest:"30 s", cues:["Braços apoiados no banco Scott.","Suba controlando a contração.","Não estenda totalmente embaixo.","Punhos neutros."] },
+      { n:"Paralela (tríceps)", sets:6, reps:5, rest:"30 s", cues:["Tronco ereto para focar no tríceps.","Desça até ~90° no cotovelo.","Suba estendendo os braços.","Ombros longe das orelhas."] }
+    ]}
+  ];
+
+  var SK = "fity-v1";
+  var state = { checks:{}, weights:{}, log:{}, mode:{} };
+  try { var raw = localStorage.getItem(SK); if (raw){ var p=JSON.parse(raw); state.checks=p.checks||{}; state.weights=p.weights||{}; state.log=p.log||{}; state.mode=p.mode||{}; } } catch(e){}
+  function save(){ try{ localStorage.setItem(SK, JSON.stringify(state)); }catch(e){} }
+
+  function dkey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  var TK = dkey(new Date());
+  var WFULL = ["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+  var WS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  var dayMap = {1:0,2:1,3:2,4:3,5:4};
+  var todayIdx = dayMap.hasOwnProperty(new Date().getDay()) ? dayMap[new Date().getDay()] : null;
+  var sel = (todayIdx!==null) ? todayIdx : 0;
+  function keyFor(di, ei){ return DAYS[di].id+"-"+ei; }
+  var $ = function(id){ return document.getElementById(id); };
+
+  var IC = {
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>',
+    dumbbell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg>',
+    info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>'
+  };
+
+  var N_DOTS = 56, R_RING = 108, CX = 130, CY = 130, SVGNS = "http://www.w3.org/2000/svg";
+  var ringDots = [];
+  (function(){ var svg=$("ringSvg"); for(var i=0;i<N_DOTS;i++){ var a=(i/N_DOTS)*Math.PI*2-Math.PI/2; var c=document.createElementNS(SVGNS,"circle"); c.setAttribute("cx",(CX+R_RING*Math.cos(a)).toFixed(1)); c.setAttribute("cy",(CY+R_RING*Math.sin(a)).toFixed(1)); c.setAttribute("r","2.5"); c.setAttribute("fill","#e3e3e8"); svg.appendChild(c); ringDots.push(c); } })();
+  function paintRing(frac){ var lit=Math.round(frac*N_DOTS); for(var i=0;i<N_DOTS;i++){ if(i<lit){ ringDots[i].setAttribute("fill","#0057ff"); ringDots[i].setAttribute("r","3.1"); } else { ringDots[i].setAttribute("fill","#e3e3e8"); ringDots[i].setAttribute("r","2.5"); } } }
+
+  function dayComplete(di){ var day=DAYS[di]; if(day.type==="hiit") return !!(state.checks[TK]&&state.checks[TK][day.id+"-hiit"]); if(!day.ex.length) return false; var c=state.checks[TK]||{}; for(var i=0;i<day.ex.length;i++) if(!c[keyFor(di,i)]) return false; return true; }
+  function doneCount(di){ var day=DAYS[di]; if(day.type==="hiit") return (state.checks[TK]&&state.checks[TK][day.id+"-hiit"])?1:0; var c=state.checks[TK]||{},n=0; day.ex.forEach(function(e,i){ if(c[keyFor(di,i)]) n++; }); return n; }
+
+  function renderDays(){ var el=$("days"); el.innerHTML=""; DAYS.forEach(function(day,i){ var b=document.createElement("button"); b.className="day"+(dayComplete(i)?" complete":""); b.setAttribute("aria-pressed", i===sel?"true":"false"); b.innerHTML='<span class="ok">'+IC.check+'</span>'+(i===todayIdx?'<span class="tdot"></span>':'')+'<div class="dl">'+day.label+'</div><div class="ds">'+(day.type==="hiit"?"HIIT":day.ex.length+" ex")+'</div>'; b.addEventListener("click", function(){ sel=i; renderAll(); }); el.appendChild(b); }); }
+
+  function renderHero(){ var day=DAYS[sel]; var total=day.type==="hiit"?1:day.ex.length; var done=doneCount(sel); $("ringDone").textContent=done; $("ringTotal").textContent="/"+total; $("ringFocus").textContent=day.full.replace("-feira","")+" · "+day.focus; $("ringCap").textContent=(done>=total&&total>0)?"treino concluído":"exercícios feitos"; paintRing(total?done/total:0); }
+
+  function renderCards(){
+    var day=DAYS[sel]; $("dayTitle").textContent=day.full;
+    var cards=$("cards"); cards.innerHTML=""; var dots=$("dots"); dots.innerHTML="";
+    if(day.type==="hiit"){ $("dayMeta").textContent=""; renderHiit(day,cards,dots); return; }
+    $("dayMeta").textContent=doneCount(sel)+"/"+day.ex.length+" feitos";
+    var c=state.checks[TK]||{};
+    day.ex.forEach(function(ex,i){
+      var key=keyFor(sel,i), isDone=!!c[key], wk=wKey(key), w=state.weights[wk], m=isMach(key), cur=exFor(sel,i);
+      var src=function(n){ return "assets/ex/"+cur.img+"/"+n+".jpg"; };
+      var card=document.createElement("div"); card.className="card"+(isDone?" done":"");
+      card.innerHTML=
+        '<div class="c-head"><span class="c-ic">'+IC.dumbbell+'</span><span class="c-name">'+cur.n+'</span>'+
+          '<button class="c-chk" aria-label="Marcar feito" data-k="'+key+'">'+IC.check+'</button></div>'+
+        (MACH[key]?'<div class="c-mode" role="group" aria-label="Versão do exercício"><button data-mode="'+key+'" data-v="l" aria-pressed="'+(!m)+'">Livre</button><button data-mode="'+key+'" data-v="m" aria-pressed="'+m+'">Máquina</button></div>':'')+
+        '<div class="c-media">'+
+          '<img class="exf f0" src="'+src(0)+'" alt="'+cur.n+' posição inicial" loading="lazy">'+
+          '<img class="exf f1" src="'+src(1)+'" alt="'+cur.n+' posição final" loading="lazy">'+
+          '<span class="c-sets">'+ex.sets+' × '+ex.reps+' · '+ex.rest+'</span>'+
+          '<button class="c-how" aria-label="Como fazer">'+IC.info+'</button>'+
+        '</div>'+
+        '<div class="c-bottom"><div><div class="c-kglbl">Carga'+(m?' · máquina':'')+'</div><div class="c-kg tnum">'+(w!=null?w:'0')+'<span> kg</span></div></div>'+
+          '<div class="stepper"><button data-dec="'+wk+'">−</button><button data-inc="'+wk+'">+</button></div></div>'+
+        '<div class="cues" hidden><h4>Como fazer · '+cur.n+'</h4><ul>'+cur.cues.map(function(q){return "<li>"+q+"</li>";}).join("")+'</ul><button class="close">Fechar</button></div>';
+      cards.appendChild(card);
+      var d=document.createElement("i"); if(i===0) d.className="on"; dots.appendChild(d);
+    });
+    cards.querySelectorAll(".c-chk").forEach(function(b){ b.addEventListener("click", function(){ toggleCheck(b.getAttribute("data-k")); }); });
+    cards.querySelectorAll("[data-inc]").forEach(function(b){ b.addEventListener("click", function(){ bump(b.getAttribute("data-inc"),2.5); }); });
+    cards.querySelectorAll("[data-dec]").forEach(function(b){ b.addEventListener("click", function(){ bump(b.getAttribute("data-dec"),-2.5); }); });
+    cards.querySelectorAll("[data-mode]").forEach(function(b){ b.addEventListener("click", function(){ var k=b.getAttribute("data-mode"), v=b.getAttribute("data-v"); if(v==="m") state.mode[k]="m"; else delete state.mode[k]; save(); var sl=cards.scrollLeft; renderCards(); cards.scrollLeft=sl; cards.onscroll(); }); });
+    cards.querySelectorAll(".c-how").forEach(function(b){ b.addEventListener("click", function(){ b.closest(".card").querySelector(".cues").hidden=false; }); });
+    cards.querySelectorAll(".cues .close").forEach(function(b){ b.addEventListener("click", function(){ b.closest(".cues").hidden=true; }); });
+    cards.onscroll=function(){ var w=cards.firstChild?cards.firstChild.offsetWidth+14:1; var idx=Math.round(cards.scrollLeft/w); dots.querySelectorAll("i").forEach(function(dd,ii){ dd.className=ii===idx?"on":""; }); };
+  }
+
+  function renderHiit(day,cards,dots){
+    var doneKey=day.id+"-hiit", isDone=!!(state.checks[TK]&&state.checks[TK][doneKey]);
+    var card=document.createElement("div"); card.className="hiit-card";
+    card.innerHTML=
+      '<div class="c-media" style="margin:15px 15px 0;aspect-ratio:16/9">'+
+        '<img class="exf f0" src="'+imgPath("qua-0",0)+'" alt="HIIT"><img class="exf f1" src="'+imgPath("qua-0",1)+'" alt="HIIT">'+
+      '</div>'+
+      '<div class="hiit-body"><div class="hiit-clock tnum" id="hClock">'+day.minutes+':00</div>'+
+      '<div class="hiit-sub">Alta intensidade · 30 s forte / 30 s leve</div>'+
+      '<div class="hiit-ctrls"><button class="primary" id="hStart">Iniciar</button><button id="hReset">Zerar</button><button id="hDone">'+(isDone?"Feito ✓":"Marcar feito")+'</button></div></div>';
+    cards.appendChild(card);
+    var total=day.minutes*60, remain=total, ticking=null, clock=$("hClock"), startBtn=$("hStart");
+    function paint(){ var m=Math.floor(remain/60),s=remain%60; clock.textContent=m+":"+String(s).padStart(2,"0"); }
+    startBtn.addEventListener("click", function(){ if(ticking){ clearInterval(ticking); ticking=null; startBtn.textContent="Continuar"; return; } startBtn.textContent="Pausar"; ticking=setInterval(function(){ remain--; paint(); if(remain<=0){ clearInterval(ticking); ticking=null; startBtn.textContent="Iniciar"; remain=total; } },1000); });
+    $("hReset").addEventListener("click", function(){ if(ticking){clearInterval(ticking);ticking=null;} remain=total; paint(); startBtn.textContent="Iniciar"; });
+    $("hDone").addEventListener("click", function(){ if(!state.checks[TK])state.checks[TK]={}; state.checks[TK][doneKey]=!state.checks[TK][doneKey]; save(); renderAll(); });
+  }
+
+  function toggleCheck(key){ if(!state.checks[TK]) state.checks[TK]={}; var now=!state.checks[TK][key]; if(now) state.checks[TK][key]=true; else delete state.checks[TK][key]; if(!state.log[key]) state.log[key]=[]; state.log[key]=state.log[key].filter(function(e){return e.date!==TK;}); if(now){ var wk=wKey(key); state.log[key].push({date:TK,weight:(state.weights[wk]!=null?state.weights[wk]:null),mode:(isMach(key)?"m":"l")}); } save(); renderAll(); }
+  function setWeight(key,val){ var num=parseFloat(String(val).replace(",",".")); if(isNaN(num)||num<0) delete state.weights[key]; else state.weights[key]=Math.round(num*10)/10; var bk=key.replace(/@m$/,""); if(state.checks[TK]&&state.checks[TK][bk]&&state.log[bk]&&wKey(bk)===key) state.log[bk]=state.log[bk].map(function(e){ return e.date===TK?{date:TK,weight:(state.weights[key]!=null?state.weights[key]:null),mode:(isMach(bk)?"m":"l")}:e; }); save(); }
+  function bump(key,delta){ var cur=(state.weights[key]!=null)?state.weights[key]:0; setWeight(key, Math.max(0, Math.round((cur+delta)*10)/10)); var btn=document.querySelector('[data-inc="'+key+'"]'); if(btn){ var card=btn.closest(".card"); card.querySelector(".c-kg").innerHTML=(state.weights[key]!=null?state.weights[key]:'0')+'<span> kg</span>'; } }
+
+  function countDone(dk){ var c=state.checks[dk]; if(!c) return 0; var n=0; for(var k in c) if(c[k]) n++; return n; }
+  function targetFor(d){ var wd=d.getDay(); if(!dayMap.hasOwnProperty(wd)) return 0; var dd=DAYS[dayMap[wd]]; return dd.type==="hiit"?1:dd.ex.length; }
+  function renderWeek(){ var bars=$("bars"); bars.innerHTML=""; var workouts=0; for(var off=6;off>=0;off--){ var d=new Date(); d.setDate(d.getDate()-off); var dk=dkey(d),wd=d.getDay(); var done=countDone(dk),tgt=targetFor(d); var frac=tgt?Math.min(1,done/tgt):(done>0?1:0); if(done>0) workouts++; var col=document.createElement("div"); col.className="bar-col"+(off===0?" today":""); col.innerHTML='<div class="bar-track"><div class="bar-fill" style="height:'+(Math.max(frac,0.04)*100)+'%"></div></div><div class="bd">'+WS[wd]+'</div>'; bars.appendChild(col); } $("weekCount").innerHTML='<b>'+workouts+'</b> de 7 dias ativos'; var s=0; for(var o=0;o<90;o++){ var dd=new Date(); dd.setDate(dd.getDate()-o); if(!dayMap.hasOwnProperty(dd.getDay())) continue; if(countDone(dkey(dd))>0) s++; else break; } $("streak").textContent=s>0?("🔥 "+s+(s===1?" dia":" dias")):""; }
+
+  function renderTop(){ var d=new Date(); $("dateChip").textContent=WFULL[d.getDay()].replace("-feira","")+", "+d.getDate(); }
+  function renderAll(){ renderDays(); renderHero(); renderCards(); renderWeek(); }
+
+  $("resetBtn").addEventListener("click", function(){ if(state.checks[TK]){ Object.keys(state.checks[TK]).forEach(function(k){ if(state.log[k]) state.log[k]=state.log[k].filter(function(e){return e.date!==TK;}); }); delete state.checks[TK]; save(); } renderAll(); });
+
+  setInterval(function(){ document.querySelectorAll(".c-media").forEach(function(m){ m.classList.toggle("flip"); }); }, 950);
+
+  renderTop(); renderAll();
+})();
+</script>
+</body>
+</html>
